@@ -1,44 +1,29 @@
 # go-module-template
-[![go.dev reference](https://pkg.go.dev/badge/github.com/soypat/go-module-template)](https://pkg.go.dev/github.com/soypat/go-module-template)
-[![Go Report Card](https://goreportcard.com/badge/github.com/soypat/go-module-template)](https://goreportcard.com/report/github.com/soypat/go-module-template)
-[![codecov](https://codecov.io/gh/soypat/go-module-template/branch/main/graph/badge.svg)](https://codecov.io/gh/soypat/go-module-template)
-[![Go](https://github.com/soypat/go-module-template/actions/workflows/go.yml/badge.svg)](https://github.com/soypat/go-module-template/actions/workflows/go.yml)
-[![sourcegraph](https://sourcegraph.com/github.com/soypat/go-module-template/-/badge.svg)](https://sourcegraph.com/github.com/soypat/go-module-template?badge)
-<!--
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![go.dev reference](https://pkg.go.dev/badge/github.com/soypat/geometry)](https://pkg.go.dev/github.com/soypat/geometry)
+[![Go Report Card](https://goreportcard.com/badge/github.com/soypat/geometry)](https://goreportcard.com/report/github.com/soypat/geometry)
+[![codecov](https://codecov.io/gh/soypat/geometry/branch/main/graph/badge.svg)](https://codecov.io/gh/soypat/geometry)
+[![Go](https://github.com/soypat/geometry/actions/workflows/go.yml/badge.svg)](https://github.com/soypat/geometry/actions/workflows/go.yml)
+[![sourcegraph](https://sourcegraph.com/github.com/soypat/geometry/-/badge.svg)](https://sourcegraph.com/github.com/soypat/geometry?badge)
 
-[![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/emersion/stability-badges#experimental)
+Stackful, correct, lean and performant library ideal for any use case. From embedded systems to GPU usage.
+ 
+## Features
+- Vector and matrices that map to GPU alignment
+- Quaternions
+- 2D/3D Grid generation and traversal
+- Performant 3x3 SVD and QR decomposition
+- 2D/3D Triangles
+- Bounding boxes
+- Polygon generation with arc and chamfering
+- 2D splines with support for Quadratic and cubic modes
+    - Provided splines are: Cubic/quadratic Bezier, Hermite spline, Basis spline, Cardinal spline, Catmull-Rom spline 
+- Few 1D math conveniences
 
-See https://github.com/emersion/stability-badges#unstable for more stability badges.
--->
+## Module structure
+- ms3..ms1 contain 32-bit (`float32`) spatial geometrical primitives.
+- md3..md1 contain 64-bit (`float64`) spatial geometrical primitive. This code is identically duplicated from ms* packages using code generation, including tests.
 
-Go module template with instructions on how to make your code importable and setting up codecov CI.
+## Development
+Code developed is exclusively `float32`. `float64` code is generated automatically from the `float32` code by running `gen.go`.
 
-How to install package with newer versions of Go (+1.16):
-```sh
-go mod download github.com/soypat/go-module-template@latest
-```
-
-
-## First steps
-
-0. Replace LICENSE with your desired license. BSD 3 clause is included by default.
-
-1. Fix `go.mod` file by replacing `github.com/YOURUSER/YOURREPONAME` with your corresponding project repository link.
-
-2. Replace `soypat/go-module-template` in the badge URLs. Make sure you've replaced all of them by performing text search in the readme for `soypat` and `template`.
-
-3. Rename `module.go` and `module_test.go` to fit your own repository needs. Below are some exemplary modules that abide by what's generally considered "good practices":
-    - [`mu8` minimal machine learning library](https://github.com/soypat/mu8). Note how most interfaces and interface algorithms are defined at the root package level and how the concrete implementations live in the subdirectories.
-    - Similarily [`sdf`](https://github.com/soypat/sdf) also does the same with defining interfaces top level.
-
-## Setting up codecov CI
-This instructive will allow for tests to run on pull requests and pushes to your repository.
-
-1. Create an account on [codecov.io](https://app.codecov.io/)
-
-2. Setup repository on codecov and obtain the CODECOV_TOKEN token, which is a string of base64 characters.
-
-3. Open up the github repository for this project and go to `Settings -> Secrets and variables -> Actions`. Once there create a New Repository Secret. Name it `CODECOV_TOKEN` and copy paste the token obtained in the previous step in the `secret` input box. Click "Add secret".
-
-
+The `internal` package serves as a place to store data that is dependent on whether the implementation is 64 or 32 bit.
