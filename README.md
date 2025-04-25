@@ -1,4 +1,4 @@
-# go-module-template
+# geometry
 [![go.dev reference](https://pkg.go.dev/badge/github.com/soypat/geometry)](https://pkg.go.dev/github.com/soypat/geometry)
 [![Go Report Card](https://goreportcard.com/badge/github.com/soypat/geometry)](https://goreportcard.com/report/github.com/soypat/geometry)
 [![codecov](https://codecov.io/gh/soypat/geometry/branch/main/graph/badge.svg)](https://codecov.io/gh/soypat/geometry)
