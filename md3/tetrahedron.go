@@ -40,7 +40,7 @@ func (t Tetra) Volume() float64 {
 	const third = 1.0 / 3.0
 	base := Triangle{t[0], t[1], t[2]}
 	area := base.Area()
-	height := base.Plane().distanceTo(t[3])
+	height := base.Plane().Distance(t[3])
 	return third * area * height
 }
 
@@ -77,7 +77,7 @@ func (t Tetra) heights() (alt [4]float64) {
 		e1 := Sub(t[k], t[j])
 		e2 := Sub(t[l], t[j])
 		p := newPlane(t[l], Cross(e1, e2))
-		alt[i] = p.distanceTo(t[i])
+		alt[i] = p.Distance(t[i])
 	}
 	return alt
 }

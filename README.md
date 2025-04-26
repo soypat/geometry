@@ -11,12 +11,17 @@ Stackful, correct, lean and performant library ideal for any use case. From embe
 - Vector and matrices that map to GPU alignment
 - Quaternions
 - 2D/3D Grid generation and traversal
+- Heapless 3D Octree implementation
+    - Is stupid fast.
 - Performant 3x3 SVD and QR decomposition
 - 2D/3D Triangles
+    - Closest point to a triangle algorithm
+- Tetrahedrons!
 - Bounding boxes
 - Polygon generation with arc and chamfering
 - 2D splines with support for Quadratic and cubic modes
     - Provided splines are: Cubic/quadratic Bezier, Hermite spline, Basis spline, Cardinal spline, Catmull-Rom spline 
+- 2D/3D Basic geometries like Line, Plane and their algorithms
 - Few 1D math conveniences
 
 ## Module structure
