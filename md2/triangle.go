@@ -6,6 +6,7 @@ package md2
 
 import (
 	math "math"
+	"github.com/soypat/geometry/internal"
 )
 
 // Triangle represents a triangle in 2D space and
@@ -19,6 +20,17 @@ type Triangle [3]Vec
 // as a point in space.
 func (t Triangle) Centroid() Vec {
 	return Scale(1.0/3.0, Add(Add(t[0], t[1]), t[2]))
+}
+
+// Sides returns the triangle's sides as lines:
+//
+//	[(t[0],t[1]), (t[1],t[2]), (t[2],t[0])]
+func (t Triangle) Sides() [3]Line {
+	return [3]Line{
+		{t[0], t[1]},
+		{t[1], t[2]},
+		{t[2], t[0]},
+	}
 }
 
 // Area returns the surface area of the triangle.
@@ -68,31 +80,8 @@ func (t Triangle) IsDegenerate(tol float64) bool {
 	}
 	// calculate vertex distance from longest side
 	ln := Line{t[longIdx], t[(longIdx+1)%3]}
-	dist := ln.Distance(t[(longIdx+2)%3])
+	dist := ln.DistanceInfinite(t[(longIdx+2)%3])
 	return dist <= tol
-}
-
-// Line is an infinite 3D Line
-// defined by two points on the Line.
-type Line [2]Vec
-
-// Interpolate takes a value between 0 and 1 to linearly
-// interpolate a point on the line.
-//
-//	Interpolate(0) returns l[0]
-//	Interpolate(1) returns l[1]
-func (l Line) Interpolate(t float64) Vec {
-	lineDir := Sub(l[1], l[0])
-	return Add(l[0], Scale(t, lineDir))
-}
-
-// Distance returns the minimum euclidean Distance of point p to the line.
-func (l Line) Distance(p Vec) float64 {
-	// https://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
-	p1 := l[0]
-	p2 := l[1]
-	num := math.Abs((p2.X-p1.X)*(p1.Y-p.Y) - (p1.X-p.X)*(p2.Y-p1.Y))
-	return num / math.Hypot(p2.X-p1.X, p2.Y-p1.Y)
 }
 
 // sort performs the sort-3 algorithm and returns
@@ -114,14 +103,57 @@ func sort(a, b, c float64) (l1, l2, l3 float64) {
 // orderedLengths returns the lengths of the sides of the triangle such that
 // a ≤ b ≤ c.
 func (t Triangle) orderedLengths() (a, b, c float64) {
-	s1, s2, s3 := t.sides()
+	s1, s2, s3 := t.edges()
 	l1 := Norm(s1)
 	l2 := Norm(s2)
 	l3 := Norm(s3)
 	return sort(l1, l2, l3)
 }
 
-// sides returns vectors for each of the sides of t.
-func (t Triangle) sides() (Vec, Vec, Vec) {
+// edges returns vectors for each of the edges of t.
+func (t Triangle) edges() (Vec, Vec, Vec) {
 	return Sub(t[1], t[0]), Sub(t[2], t[1]), Sub(t[0], t[2])
+}
+
+// Contains returns true if point is contained within the triangle's surface.
+func (t Triangle) Contains(point Vec) bool {
+	d1 := d2Sign(point, t[0], t[1])
+	d2 := d2Sign(point, t[1], t[2])
+	d3 := d2Sign(point, t[2], t[0])
+	has_neg := (d1 < 0) || (d2 < 0) || (d3 < 0)
+	has_pos := (d1 > 0) || (d2 > 0) || (d3 > 0)
+	return !(has_neg && has_pos)
+}
+
+func d2Sign(p1, p2, p3 Vec) float64 {
+	// TODO: replace with CopyOrientation?
+	return (p1.X-p3.X)*(p2.Y-p3.Y) - (p2.X-p3.X)*(p1.Y-p3.Y)
+}
+
+// Closest returns the point on the triangle closest to the argument point p.
+// side and vertex are non negative to flag the point is closest the non-negative side or vertex index.
+// If the point lies on the triangle it returns the same point and side=vertex=-1. side and vertex cannot be both non-negative.
+func (t Triangle) Closest(p Vec) (closest Vec, side int8, vertex int8) {
+	if t.Contains(p) {
+		return p, -1, -1
+	}
+	minDist := internal.Largefloat64
+	for j := range t {
+		nxt := (j + 1) % 3
+		edge := Line{{X: t[j].X, Y: t[j].Y}, {X: t[nxt].X, Y: t[nxt].Y}}
+		pointOnTriangle, maybeVertex := edge.Closest(p)
+		d2 := Norm2(Sub(p, pointOnTriangle))
+		if d2 < minDist {
+			if vertex < 0 {
+				vertex = -1
+				side = int8(j)
+			} else {
+				side = -1
+				vertex = (int8(j) + maybeVertex) % 3
+			}
+			minDist = d2
+			closest = pointOnTriangle
+		}
+	}
+	return closest, side, vertex
 }
