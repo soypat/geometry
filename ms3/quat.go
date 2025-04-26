@@ -53,7 +53,8 @@ const (
 type Quat struct {
 	// V contains I, J and K imaginary parts.
 	I, J, K float32
-	W       float32
+	// W is the quaternion's real part.
+	W float32
 }
 
 // IJK returns I,J,K fields of q as a vector with set fields X,Y,Z, respectively.

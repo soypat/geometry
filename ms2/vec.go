@@ -236,6 +236,7 @@ func CopyOrientation(f float32, p1, p2, p3 Vec) float32 {
 	if slope1 == slope2 {
 		return 0
 	}
+
 	return math.Copysign(f, slope2-slope1)
 }
 

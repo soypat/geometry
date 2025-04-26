@@ -17,13 +17,24 @@ func (t Triangle) Centroid() Vec {
 	return Scale(1.0/3.0, Add(Add(t[0], t[1]), t[2]))
 }
 
+// Sides returns the triangle's sides as lines:
+//
+//	[(t[0],t[1]), (t[1],t[2]), (t[2],t[0])]
+func (t Triangle) Sides() (edges [3]Line) {
+	return [3]Line{
+		{t[0], t[1]},
+		{t[1], t[2]},
+		{t[2], t[0]},
+	}
+}
+
 // Normal returns the vector with direction
 // perpendicular to the Triangle's face and magnitude
 // twice that of the Triangle's area. The ordering
 // of the triangle vertices decides the normal's resulting
 // direction. The returned vector is not normalized.
 func (t Triangle) Normal() Vec {
-	s1, s2, _ := t.sides()
+	s1, s2, _ := t.edges()
 	return Cross(s1, s2)
 }
 
@@ -33,7 +44,7 @@ func (t Triangle) IsDegenerate(tol float32) bool {
 	longIdx := t.longIdx()
 	// calculate vertex distance from longest side
 	ln := Line{t[longIdx], t[(longIdx+1)%3]}
-	dist := ln.Distance(t[(longIdx+2)%3])
+	dist := ln.DistanceInfinite(t[(longIdx+2)%3])
 	return dist <= tol
 }
 
@@ -57,7 +68,7 @@ func (t Triangle) longIdx() int {
 	return longIdx
 }
 
-// Area returns the surface area of the triangle.
+// Area returns the surface area of the triangle while taking special care of numerical error.
 func (t Triangle) Area() float32 {
 	// Heron's Formula, see https://en.wikipedia.org/wiki/Heron%27s_formula.
 	// Also see William M. Kahan (24 March 2000). "Miscalculating Area and Angles of a Needle-like Triangle"
@@ -87,36 +98,20 @@ func Sort(a, b, c float32) (l1, l2, l3 float32) {
 // orderedLengths returns the lengths of the sides of the triangle such that
 // a ≤ b ≤ c.
 func (t Triangle) orderedLengths() (a, b, c float32) {
-	s1, s2, s3 := t.sides()
+	s1, s2, s3 := t.edges()
 	l1 := Norm(s1)
 	l2 := Norm(s2)
 	l3 := Norm(s3)
 	return Sort(l1, l2, l3)
 }
 
-// sides returns vectors for each of the sides of t.
-func (t Triangle) sides() (Vec, Vec, Vec) {
+// edges returns directional vectors for each of the edges of t.
+func (t Triangle) edges() (Vec, Vec, Vec) {
 	return Sub(t[1], t[0]), Sub(t[2], t[1]), Sub(t[0], t[2])
 }
 
-// Line is an infinite 3D line
-// defined by two points on the line.
-type Line [2]Vec
-
-// Interpolate takes a value between 0 and 1 to linearly
-// interpolate a point on the line.
-//
-//	Interpolate(0) returns l[0]
-//	Interpolate(1) returns l[1]
-func (l Line) Interpolate(t float32) Vec {
-	lineDir := Sub(l[1], l[0])
-	return Add(l[0], Scale(t, lineDir))
-}
-
-// Distance returns the minimum euclidean Distance of point p
-// to the infinite line.
-func (l Line) Distance(p Vec) float32 {
-	// https://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
-	num := Norm(Cross(Sub(p, l[0]), Sub(p, l[1])))
-	return num / Norm(Sub(l[1], l[0]))
+// Plane constructs a new [Plane] from the triangle.
+// The point used for the plane is t[0] and the normal is calculated with [Triangle.Normal].
+func (t Triangle) Plane() Plane {
+	return newPlane(t[0], t.Normal())
 }
