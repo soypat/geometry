@@ -137,28 +137,30 @@ func TestPolygon_IsClockwise(t *testing.T) {
 func TestArc_invalidArc(t *testing.T) {
 	var cases = []struct {
 		start, end, center Vec
+		isValid            bool
 	}{
-		// 180 degree:
-		// {start: Vec{X: 165.36844, Y: 125.63215}, end: Vec{X: 165.59346, Y: 125.85769}, center: Vec{X: 165.48108, Y: 125.74479}},
-		//
-		{start: Vec{X: 168.19885, Y: 129.9802}, end: Vec{X: 167.97331, Y: 129.75517}, center: Vec{X: 168.08597, Y: 129.86781}},
-		{start: Vec{X: 135.1107, Y: 116.67478}, end: Vec{X: 135.1107, Y: 116.67478}, center: Vec{X: 135.10947, Y: 116.673546}},
-		{start: Vec{X: -1.05, Y: 149.07}, end: Vec{X: -1.12, Y: 148.7}, center: Vec{X: -1.0500132, Y: 149}},
+
+		0: {start: Vec{X: 135.1107, Y: 116.67478}, end: Vec{X: 135.1107, Y: 116.67478}, center: Vec{X: 135.10947, Y: 116.673546}},
+		1: {start: Vec{X: -1.05, Y: 149.07}, end: Vec{X: -1.12, Y: 148.7}, center: Vec{X: -1.0500132, Y: 149}},
+		// Close to 180 Degree arcs:
+		2: {isValid: true, start: Vec{X: -40.52799, Y: -25.628536}, end: Vec{X: -40.88199, Y: -25.628536}, center: Vec{X: -40.704987, Y: -25.628536}},
+		3: {isValid: true, start: Vec{X: 165.36844, Y: 125.63215}, end: Vec{X: 165.59346, Y: 125.85769}, center: Vec{X: 165.48108, Y: 125.74479}},
+		4: {isValid: true, start: Vec{X: 168.19885, Y: 129.9802}, end: Vec{X: 167.97331, Y: 129.75517}, center: Vec{X: 168.08597, Y: 129.86781}},
 	}
 	var poly PolygonBuilder
-	for _, test := range cases {
+	for i, test := range cases {
 		start, end, center := test.start, test.end, test.center
 		radius1 := Norm(Sub(start, center))
 		radius2 := Norm(Sub(end, center))
 		if math.Abs(radius1-radius2)/radius1 > 0.001 {
-			t.Log("start/end not equidistant from center:", radius1, radius2)
+			t.Log("start/end not equidistant from center:", i, radius1, radius2)
 		}
 		poly.Reset()
 		poly.Add(start)
 		poly.Add(end).Arc(radius1, 3)
 		vecs, err := poly.AppendVecs(nil)
-		if err == nil {
-			t.Error("expected invalid input")
+		if err == nil && !test.isValid {
+			t.Error("expected invalid input", i)
 			for _, v := range vecs {
 				if v != v {
 					t.Error("effectively got NaNs")
@@ -167,6 +169,15 @@ func TestArc_invalidArc(t *testing.T) {
 				diffcenter := math.Abs(gotRadius - radius1)
 				if diffcenter/radius1 > 0.01 {
 					t.Errorf("bad radius got=%f want=%f", gotRadius, radius1)
+				}
+			}
+		} else if test.isValid {
+			if err != nil {
+				t.Error("error for valid input", i)
+			}
+			for _, v := range vecs {
+				if v != v {
+					t.Error("NaN output for valid input")
 				}
 			}
 		}
