@@ -31,12 +31,11 @@ func canalisTransform(t Triangle) Mat4 {
 	yc = Unit(yc)
 	zc := Cross(xc, yc)
 
-	T := NewMat4([]float32{
+	T := Mat4{
 		xc.X, xc.Y, xc.Z, 0,
 		yc.X, yc.Y, yc.Z, 0,
 		zc.X, zc.Y, zc.Z, 0,
-		0, 0, 0, 1,
-	})
+		0, 0, 0, 1}
 
 	t0T := T.MulPosition(t[0])
 	// Add to translation component.

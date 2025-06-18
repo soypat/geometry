@@ -7,17 +7,68 @@ package md3
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"testing"
+
+	"github.com/soypat/geometry/internal"
 )
 
 func TestRotation(t *testing.T) {
 	const tol = 1e-7
 	v := Vec{X: 1}
-	y90 := RotatingMat4(math.Pi/2, Vec{Y: 1})
+	y90 := RotationMat4(math.Pi/2, Vec{Y: 1})
 	got := y90.MulPosition(v)
 	want := Vec{Z: -1}
 	if !EqualElem(got, want, tol) {
 		t.Errorf("want %v, got %v", want, got)
+	}
+}
+
+func TestRotationConversions(t *testing.T) {
+	const tol = internal.Smallfloat64 / 10
+	rotations := []Quat{
+		Rotation(1, Vec{X: 1}),
+		Rotation(1, Vec{X: 1, Y: 1}),
+		Rotation(2, Vec{X: 1, Y: 1, Z: 1}),
+		Rotation(math.Pi, Vec{X: 1}),
+		Rotation(math.Pi, Vec{X: 1, Y: 1}),
+		Rotation(math.Pi, Vec{X: 1, Y: 1, Z: 1}),
+		Rotation(2*math.Pi, Vec{X: 1}),
+		Rotation(0, Vec{X: 1}),
+	}
+	rng := newRNG(1)
+	for _, rot := range rotations {
+		angle, axis := rot.Rotation()
+		gotrot := Rotation(angle, axis)
+		if !EqualQuat(rot, gotrot, tol) {
+			t.Errorf("want %v, got %v", rot, gotrot)
+		}
+		if !rot.EqualOrientation(gotrot, tol) {
+			t.Errorf("not equal orientations %v, got %v", rot, gotrot)
+		}
+		m3 := rot.RotationMat3()
+		for i := 0; i < 20; i++ {
+			v := rng.Vec()
+			vgot := MulMatVec(m3, v)
+			vwant := rot.Rotate(v)
+			if !EqualElem(vgot, vwant, tol) {
+				t.Errorf("want %v, got %v", vwant, vgot)
+			}
+		}
+	}
+}
+
+func TestRotationBetweenVecs(t *testing.T) {
+	const tol = internal.Smallfloat64 / 10
+	rng := newRNG(1)
+	for i := 0; i < 80; i++ {
+		start := rng.Vec()
+		dest := rng.Vec()
+		rot := RotationBetweenVecs(start, dest)
+		gotDest := rot.Rotate(start)
+		if !EqualElem(Unit(gotDest), Unit(dest), tol) { // test direction, so use Unit.
+			t.Errorf("want %v, got %v", dest, gotDest)
+		}
 	}
 }
 
@@ -58,4 +109,28 @@ func printMat(a Mat3) {
 	fmt.Printf("%f %f %f \n", a.x00, a.x01, a.x02)
 	fmt.Printf("%f %f %f \n", a.x10, a.x11, a.x12)
 	fmt.Printf("%f %f %f \n", a.x20, a.x21, a.x22)
+}
+
+func newRNG(src int) *rngGen {
+	return &rngGen{rng: *rand.New(rand.NewSource(int64(src)))}
+}
+
+type rngGen struct {
+	rng rand.Rand
+}
+
+func (rng *rngGen) Vec() Vec {
+	return Vec{X: rng.Float(), Y: rng.Float(), Z: rng.Float()}
+}
+
+func (rng *rngGen) Float() float64 {
+	return float64(rng.rng.Float64())
+}
+
+func (rng *rngGen) FloatRange(start, end float64) float64 {
+	return float64(rng.rng.Float64())*(end-start) + start
+}
+
+func (rng *rngGen) VecRange(start, end float64) Vec {
+	return Vec{X: rng.FloatRange(start, end), Y: rng.FloatRange(start, end), Z: rng.FloatRange(start, end)}
 }

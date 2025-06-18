@@ -64,19 +64,6 @@ func ScalingMat4(v Vec) Mat4 {
 		0, 0, 0, 1}
 }
 
-// RotatingMat4 returns an orthographic 4x4 rotation matrix (right hand rule).
-func RotatingMat4(angleRadians float64, axis Vec) Mat4 {
-	axis = Unit(axis)
-	s, c := math.Sincos(angleRadians)
-	m := 1 - c
-	return Mat4{
-		m*axis.X*axis.X + c, m*axis.X*axis.Y - axis.Z*s, m*axis.Z*axis.X + axis.Y*s, 0,
-		m*axis.X*axis.Y + axis.Z*s, m*axis.Y*axis.Y + c, m*axis.Y*axis.Z - axis.X*s, 0,
-		m*axis.Z*axis.X - axis.Y*s, m*axis.Y*axis.Z + axis.X*s, m*axis.Z*axis.Z + c, 0,
-		0, 0, 0, 1,
-	}
-}
-
 // MulMat4 multiplies two 4x4 matrices and returns the result.
 func MulMat4(a, b Mat4) Mat4 {
 	m := Mat4{}
@@ -220,46 +207,6 @@ func (m *Mat4) Put(b []float64) {
 func (m Mat4) Array() (rowmajor [16]float64) {
 	m.Put(rowmajor[:])
 	return rowmajor
-}
-
-// RotatingBetweenVecsMat4 returns the rotation matrix that transforms "start" onto the same direction as "dest".
-func RotatingBetweenVecsMat4(start, dest Vec) Mat4 {
-	// is either vector == 0?
-	const epsilon = 1e-12
-	if EqualElem(start, Vec{}, epsilon) || EqualElem(dest, Vec{}, epsilon) {
-		return IdentityMat4()
-	}
-	// normalize both vectors
-	start = Unit(start)
-	dest = Unit(dest)
-	// are the vectors the same?
-	if EqualElem(start, dest, epsilon) {
-		return IdentityMat4()
-	}
-
-	// are the vectors opposite (180 degrees apart)?
-	if EqualElem(Scale(-1, start), dest, epsilon) {
-		return Mat4{
-			-1, 0, 0, 0,
-			0, -1, 0, 0,
-			0, 0, -1, 0,
-			0, 0, 0, 1,
-		}
-	}
-	// general case
-	// See:	https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
-	v := Cross(start, dest)
-	vx := Skew(v)
-	k := 1. / (1. + Dot(start, dest))
-
-	vx2 := MulMat3(vx, vx)
-	vx2 = ScaleMat3(vx2, k)
-
-	// Calculate sum of matrices.
-	vx = AddMat3(vx, IdentityMat3())
-	vx = AddMat3(vx, vx2)
-
-	return vx.AsMat4()
 }
 
 // EqualMat4 tests the equality of 4x4 matrices.

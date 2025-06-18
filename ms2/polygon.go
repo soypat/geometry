@@ -204,8 +204,8 @@ func appendArcWithCenter(dst []Vec, start, center Vec, arcAngle float32, facets 
 }
 
 func arcCenterFrom2points(p1, p2 Vec, r float32) (Vec, float32, error) {
-	const semiArcTol = internal.Smallfloat32 * 10
 	rabs := math.Abs(r)
+	semiArcTol := rabs * 1e-3
 	V12 := Sub(p2, p1)
 	chordCenter := Add(p1, Scale(0.5, V12))
 	chordLen := Norm(V12)   // Chord length.

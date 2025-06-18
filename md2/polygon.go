@@ -10,6 +10,7 @@ import (
 
 	math "math"
 	"github.com/soypat/geometry/internal"
+	ms1 "github.com/soypat/geometry/md1"
 )
 
 type cpAtIdxErr struct {
@@ -208,22 +209,24 @@ func appendArcWithCenter(dst []Vec, start, center Vec, arcAngle float64, facets 
 
 func arcCenterFrom2points(p1, p2 Vec, r float64) (Vec, float64, error) {
 	rabs := math.Abs(r)
+	semiArcTol := rabs * 1e-3
 	V12 := Sub(p2, p1)
 	chordCenter := Add(p1, Scale(0.5, V12))
 	chordLen := Norm(V12)   // Chord length.
 	maxChordLen := 2 * rabs // Make sure the perimeter of a arc with infinite radius is less than the chord.
-	if chordLen == 0 {
-		return Vec{}, 0, errArcCPEqualToPrev
-	} else if maxChordLen-chordLen < -internal.Smallfloat64 {
-		return Vec{}, 0, errBadArc
-	} else if math.Abs(chordLen/maxChordLen-1) < internal.Smallfloat64 {
-		return Scale(0.5, Add(p1, p2)), math.Copysign(math.Pi/2, r), nil
-	}
+
 	// Theta is the opening angle from the center of the arc circle
 	// to the two chord points.
 	// Due to chord definition theta/2 is the angle formed
 	// by the chord and the tangent to the chord point.
-	sinTheta := chordLen / (2 * rabs)
+	sinTheta := chordLen / maxChordLen
+	if chordLen == 0 {
+		return Vec{}, 0, errArcCPEqualToPrev
+	} else if maxChordLen-chordLen <= -semiArcTol {
+		return Vec{}, 0, errBadArc
+	} else if ms1.EqualWithinAbs(sinTheta, 1, semiArcTol) {
+		return Scale(0.5, Add(p1, p2)), math.Copysign(math.Pi/2, r), nil
+	}
 	chordThetaDiv2 := math.Asin(sinTheta)
 	diffTo90 := chordThetaDiv2 - math.Pi/2
 	if math.Abs(diffTo90) < internal.Smallfloat64/10 {

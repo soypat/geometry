@@ -69,12 +69,6 @@ func EqualMat3(a, b Mat3, tolerance float64) bool {
 		ms1.EqualWithinAbs(a.x22, b.x22, tolerance)
 }
 
-// MulPosition multiplies a V2 position with a rotate/translate matrix.
-func (a Mat3) mulPosition(x, y float64) (float64, float64) {
-	return a.x00*x + a.x01*y + a.x02,
-		a.x10*x + a.x11*y + a.x12
-}
-
 // MulMat3 multiplies two 3x3 matrices.
 func MulMat3(a, b Mat3) Mat3 {
 	m := Mat3{}
@@ -256,27 +250,6 @@ func (m Mat3) AsMat4() Mat4 {
 		m.x20, m.x21, m.x22, 0,
 		0, 0, 0, 1,
 	}
-}
-
-// RotatingMat3 returns a 3×3 rotation matrix corresponding to the receiver. It
-// may be used to perform rotations on a 3-vector or to apply the rotation
-// to a 3×n matrix of column vectors. If the receiver is not a unit
-// quaternion, the returned matrix will not be a pure rotation.
-func RotatingMat3(rotationUnit Quat) Mat3 {
-	w, i, j, k := rotationUnit.W, rotationUnit.I, rotationUnit.J, rotationUnit.K
-	ii := 2 * i * i
-	jj := 2 * j * j
-	kk := 2 * k * k
-	wi := 2 * w * i
-	wj := 2 * w * j
-	wk := 2 * w * k
-	ij := 2 * i * j
-	jk := 2 * j * k
-	ki := 2 * k * i
-	return mat3(
-		1-(jj+kk), ij-wk, ki+wj,
-		ij+wk, 1-(ii+kk), jk-wi,
-		ki-wj, jk+wi, 1-(ii+jj))
 }
 
 // Hessian returns the Hessian matrix of the vector field f at point p.
