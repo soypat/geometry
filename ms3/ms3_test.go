@@ -33,7 +33,8 @@ func TestRotationConversions(t *testing.T) {
 		Rotation(2*math.Pi, Vec{X: 1}),
 		Rotation(0, Vec{X: 1}),
 	}
-	tolroot := math.Sqrt(math.Sqrt(tol))
+	maxAngle := 5 * math.Pi / 180
+	angleTol := math.Cos(maxAngle / 2)
 	rng := newRNG(1)
 	for _, rot := range rotations {
 		angle, axis := rot.Rotation()
@@ -41,7 +42,7 @@ func TestRotationConversions(t *testing.T) {
 		if !EqualQuat(rot, gotrot, tol) {
 			t.Errorf("want %v, got %v", rot, gotrot)
 		}
-		if !rot.EqualOrientation(gotrot, tolroot) {
+		if !rot.EqualOrientation(gotrot, angleTol) {
 			t.Errorf("not equal orientations %v, got %v", rot, gotrot)
 		}
 		m3 := rot.RotationMat3()
