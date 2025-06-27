@@ -225,7 +225,7 @@ func arcCenterFrom2points(p1, p2 Vec, r float64) (Vec, float64, error) {
 	} else if maxChordLen-chordLen <= -semiArcTol {
 		return Vec{}, 0, errBadArc
 	} else if ms1.EqualWithinAbs(sinTheta, 1, semiArcTol) {
-		return Scale(0.5, Add(p1, p2)), math.Copysign(math.Pi/2, r), nil
+		return Scale(0.5, Add(p1, p2)), math.Copysign(math.Pi, r), nil
 	}
 	chordThetaDiv2 := math.Asin(sinTheta)
 	diffTo90 := chordThetaDiv2 - math.Pi/2

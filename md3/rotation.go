@@ -124,13 +124,14 @@ func RotationBetweenVecs(start, dest Vec) Quat {
 }
 
 // EqualOrientation returns whether the quaternions represents the same orientation with a given tolerence
-func (q1 Quat) EqualOrientation(q2 Quat, tolsq float64) bool {
-	n1sq, n2sq := q1.Dot(q1), q2.Dot(q2)
+func (q1 Quat) EqualOrientation(q2 Quat, tol float64) bool {
+	n1sq := q1.Dot(q1)
+	n2sq := q2.Dot(q2)
 	if n1sq == 0 || n2sq == 0 {
 		return false // Degenerate quaternion.
 	}
-	dot := math.Abs(q1.Dot(q2) / (n1sq * n2sq))
-	return dot > 1-tolsq
+	d := q1.Dot(q2)
+	return d*d >= tol*tol*(n1sq*n2sq)
 }
 
 /*

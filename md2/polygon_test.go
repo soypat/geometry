@@ -5,9 +5,12 @@
 package md2
 
 import (
+	"strconv"
 	"testing"
 
 	math "math"
+	"github.com/soypat/geometry/internal"
+	ms1 "github.com/soypat/geometry/md1"
 )
 
 var testoffsets = []Vec{{-1, -2}, {-2, 1}, {2, -1}, {}, {1, 0}, {0, 1}, {1, 1}}
@@ -184,6 +187,47 @@ func TestArc_invalidArc(t *testing.T) {
 					t.Error("NaN output for valid input")
 				}
 			}
+		}
+	}
+}
+
+func TestArcUniformity(t *testing.T) {
+	const tol = internal.Smallfloat64
+	var cases = []struct {
+		start, end Vec
+		radius     float64
+	}{
+		{start: Vec{0, 0}, end: Vec{0, 4}, radius: 2},
+	}
+	var poly PolygonBuilder
+	var buf []Vec
+	var err error
+	for itest, test := range cases {
+		for facets := 3; facets <= 3; facets++ {
+			t.Run("case="+strconv.Itoa(itest)+" facets="+strconv.Itoa(facets), func(t *testing.T) {
+				poly.Reset()
+				poly.Add(test.start)
+				poly.Add(test.end).Arc(test.radius, facets)
+				buf, err = poly.AppendVecs(buf[:0])
+				if err != nil {
+					t.Fatal(err)
+				}
+				center, angle, err := arcCenterFrom2points(test.start, test.end, test.radius)
+				if err != nil {
+					t.Errorf("getting center: %s", err)
+				}
+				anglePerFacet := angle / float64(facets)
+				dir0 := Sub(test.start, center)
+				for i, v := range buf {
+					dir := Sub(v, center)
+					cosangle := Cos(dir, dir0)
+					gotAngle := math.Acos(cosangle)
+					wantAngle := float64(i) * anglePerFacet
+					if !ms1.EqualWithinAbs(gotAngle, wantAngle, tol) {
+						t.Errorf("%d/%d facet-dir want angle swept %f, got %f", i+1, len(buf), wantAngle, gotAngle)
+					}
+				}
+			})
 		}
 	}
 }
