@@ -26,6 +26,31 @@ func Interp(x, y, a float32) float32 {
 	return x*(1-a) + y*a
 }
 
+// InterpWrap returns the linear interpolation between x and y on the cyclic domain [0,wrapAt].
+//   - x and y define interpolation domain and must be contained within cyclic domain [0,wrapAt]
+//   - a is the interpolation parameter and must be contained within [0,1]. a=0 returns x, a=1 returns y.
+//   - wrapAt defines the period of the cyclic domain, specifically the point at which the domain wraps back to 0.
+//     Typically 2*math.Pi radians, 360 degrees or 1 for unit phases. wrapAt must be positive.
+//
+// If above rules are followed the result is guaranteed to lie in [x,y] which in turn is contained in [0,wrapAt].
+func InterpWrap(wrapAt, x, y, a float32) float32 {
+	// TODO: maybe this function can be simplified with math intrinsics like Mod or Modf? Add tests before changing.
+	wrapHalf := wrapAt / 2
+	dist := y - x
+	if dist > wrapHalf {
+		dist -= wrapAt
+	} else if dist < -wrapAt {
+		dist += wrapAt
+	}
+	v := x + a*dist
+	if v > wrapAt {
+		v -= wrapAt
+	} else if v < 0 {
+		v += wrapAt
+	}
+	return v
+}
+
 // SmoothStep performs smooth cubic hermite interpolation between 0 and 1 when edge0 < x < edge1.
 func SmoothStep(edge0, edge1, x float32) float32 {
 	t := Clamp((x-edge0)/(edge1-edge0), 0, 1)

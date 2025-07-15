@@ -203,7 +203,7 @@ func TestArcUniformity(t *testing.T) {
 	var buf []Vec
 	var err error
 	for itest, test := range cases {
-		for facets := 3; facets <= 3; facets++ {
+		for _, facets := range []int{2, 3, 5, 9} {
 			t.Run("case="+strconv.Itoa(itest)+" facets="+strconv.Itoa(facets), func(t *testing.T) {
 				poly.Reset()
 				poly.Add(test.start)
