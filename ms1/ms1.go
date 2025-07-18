@@ -158,3 +158,31 @@ func (nra NewtonRaphsonSolver) Root(x0 float32, f func(xGuess float32) float32) 
 	}
 	return x_root, -nra.MaxIterations
 }
+
+// GridSubdomain returns the indexing for a 1D subdomain contained within a larger gridded domain of equally spaced nGridPoints points.
+//   - iStart contains the starting index of the first point contained within the subdomain.
+//   - nSub is the number of consecutive grid points contained within the subdomain.
+//
+// This function is primarily used for higher dimension GridSubdomain calls in 2D and 3D packages
+func GridSubdomain(domMin, domMax float32, nGridPoints int, subMin, subMax float32) (iStart, nSub int) {
+	if domMin > domMax || subMin > subMax || subMax > domMax || nGridPoints <= 1 {
+		panic("invalid arguments to gridSubdomain")
+	}
+	dx := (domMax - domMin) / float32(nGridPoints-1) // The size of grid spaces.
+	startOffset := subMin - domMin
+	iStartf := startOffset / dx
+	iStart = min(int(math.Ceil(iStartf)), nGridPoints-1)
+
+	endOffset := subMax - domMin
+	iEndf := endOffset / dx
+	iEnd := min(int(math.Ceil(iEndf)), nGridPoints-1)
+	nSub = iEnd - iStart
+	return iStart, nSub
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
