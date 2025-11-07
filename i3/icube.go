@@ -2,64 +2,65 @@ package i3
 
 // Cube implements a tree cube for Octree algorithms.
 type Cube struct {
+	// Vec stores the shifted
 	Vec
-	// Lvl keeps track of the level in the tree.
-	//  - Lvl==1 means the cube is the smallest possible cube.
-	//  - Lvl==0 is an invalid level. May be used as a flag to signal the cube has been discarded or processed and ready for discard.
-	Lvl int
+	// Level keeps track of the level in the tree.
+	//  - Level==1 means the cube is the smallest possible cube.
+	//  - Level==0 is an invalid level. May be used as a flag to signal the cube has been discarded or processed and ready for discard.
+	Level int
 }
 
 // IsSmallest returns true if Lvl==1. This means the cube cannot be decomposed further with [Cube.Octree].
-func (c Cube) IsSmallest() bool { return c.Lvl == 1 }
+func (c Cube) IsSmallest() bool { return c.Level == 1 }
 
 // IsSecondSmallest returns true if Lvl==2. This means the cube can be decomposed once more with [Cube.Octree].
-func (c Cube) IsSecondSmallest() bool { return c.Lvl == 2 }
+func (c Cube) IsSecondSmallest() bool { return c.Level == 2 }
 
 // DecomposesTo returns the amount of cubes generated from decomposing the cube down to cubes of the argument target level.
-func (c Cube) DecomposesTo(targetLvl int) uint64 {
-	if targetLvl > c.Lvl {
+func (c Cube) DecomposesTo(targetLevel int) uint64 {
+	if targetLevel > c.Level {
 		panic("invalid targetLvl to icube.decomposesTo")
 	}
-	return Pow8(c.Lvl - targetLvl)
+	return Pow8(c.Level - targetLevel)
 }
 
 // Size returns the length of one of the icube's sides.
 func (c Cube) Size() (resUnits int) {
-	return 1 << (c.Lvl - 1)
+	return 1 << (c.Level - 1)
 }
 
 // Supercube returns the ICube3's parent octree ICube3.
 func (c Cube) Supercube() Cube {
-	upLvl := c.Lvl + 1
-	bitmask := (1 << upLvl) - 1
+	upLevel := c.Level + 1
+	bitmask := (1 << upLevel) - 1
 	return Cube{
-		Vec: c.Vec.AndnotScalar(bitmask),
-		Lvl: upLvl,
+		Vec:   c.Vec.AndnotScalar(bitmask),
+		Level: upLevel,
 	}
 }
 
 // Index returns the indices corresponding to the ICube3 in the root cube.
 // By multiplying the resulting indices by the smallest cube size one can obtain the origin of the ICube in space.
 func (c Cube) Index() Vec {
-	return c.Vec.ShiftRight(c.Lvl) // icube indices per level in the octree.
+	return c.Vec.ShiftRightScalar(c.Level) // icube indices per level in the octree.
 }
 
 // Octree returns the 8 sub-cubes of the receiver.
 func (c Cube) Octree() [8]Cube {
-	lvl := c.Lvl - 1
-	if lvl <= 0 {
+	level := c.Level - 1
+	if level <= 0 {
 		panic("invalid operation: octree for level<=1")
 	}
-	s := 1 << lvl
+	s := 1 << level
 	return [8]Cube{
-		{Vec: c.Add(Vec{0, 0, 0}), Lvl: lvl},
-		{Vec: c.Add(Vec{s, 0, 0}), Lvl: lvl},
-		{Vec: c.Add(Vec{s, s, 0}), Lvl: lvl},
-		{Vec: c.Add(Vec{0, s, 0}), Lvl: lvl},
-		{Vec: c.Add(Vec{0, 0, s}), Lvl: lvl},
-		{Vec: c.Add(Vec{s, 0, s}), Lvl: lvl},
-		{Vec: c.Add(Vec{s, s, s}), Lvl: lvl},
-		{Vec: c.Add(Vec{0, s, s}), Lvl: lvl},
+		{Vec: c.Add(Vec{0, 0, 0}), Level: level},
+		{Vec: c.Add(Vec{s, 0, 0}), Level: level},
+		{Vec: c.Add(Vec{s, s, 0}), Level: level},
+		{Vec: c.Add(Vec{0, s, 0}), Level: level},
+		{Vec: c.Add(Vec{0, 0, s}), Level: level},
+		{Vec: c.Add(Vec{s, 0, s}), Level: level},
+		{Vec: c.Add(Vec{s, s, s}), Level: level},
+		{Vec: c.Add(Vec{0, s, s}), Level: level},
 	}
 }
 
