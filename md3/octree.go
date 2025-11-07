@@ -157,7 +157,7 @@ func (oct Octree) SafeSpread(dstWithLvl0, src []i3.Cube, numLvl0 int) (newDst, n
 }
 
 // CubeCorners returns the corners of the cube starting with the z=0 xy plane corners.
-// cubeSize should be the result of [Octree.CubeSize] called on c. It is left to the user to do for performance reasons.
+// cubeSize should be the result of [Octree.CubeSize] called on c. It is left to the user for performance reasons.
 func (oct Octree) CubeCorners(c i3.Cube, cubeSize float64) [8]Vec {
 	origin := oct.CubeOrigin(c, cubeSize)
 	return [8]Vec{
@@ -173,10 +173,20 @@ func (oct Octree) CubeCorners(c i3.Cube, cubeSize float64) [8]Vec {
 }
 
 // CubeOrigin returns the Cube argument origin (lowest index corner position) in the octree.
-// cubeSize should be the result of [Octree.CubeSize] called on c. It is left to the user to do for performance reasons.
+// cubeSize should be the result of [Octree.CubeSize] called on c. It is left to the user for performance reasons.
 func (oct Octree) CubeOrigin(c i3.Cube, cubeSize float64) Vec {
 	idx := c.Index()
 	return Add(oct.Origin, Scale(cubeSize, Vec{X: float64(idx.X), Y: float64(idx.Y), Z: float64(idx.Z)}))
+}
+
+// Box returns the bounding box of the cube argument.
+// cubeSize should be the result of [Octree.CubeSize] called on c. It is left to the user for performance reasons.
+func (oct Octree) CubeBox(c i3.Cube, cubeSize float64) Box {
+	origin := oct.CubeOrigin(c, cubeSize)
+	return Box{
+		Min: origin,
+		Max: AddScalar(cubeSize, origin),
+	}
 }
 
 // CubeSize returns the length of the sides of the cube.
