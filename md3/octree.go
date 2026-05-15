@@ -183,8 +183,8 @@ func (oct Octree) CubeOrigin(c i3.Cube, cubeSize float64) Vec {
 // CubeCenter returns center of cube.
 // cubeSize should be the result of [Octree.CubeSize] called on c. It is left to the user for performance reasons.
 func (oct Octree) CubeCenter(c i3.Cube, cubeSize float64) Vec {
-	idx := c.Index()
-	return Add(oct.Origin, Scale(cubeSize, Vec{X: float64(idx.X) + 0.5, Y: float64(idx.Y) + 0.5, Z: float64(idx.Z) + 0.5}))
+	halfSize := 0.5 * cubeSize
+	return Add(oct.CubeOrigin(c, cubeSize), Vec{X: halfSize, Y: halfSize, Z: halfSize})
 }
 
 // Box returns the bounding box of the cube argument.

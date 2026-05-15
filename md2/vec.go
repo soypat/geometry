@@ -120,6 +120,14 @@ func MaxElem(a, b Vec) Vec {
 	}
 }
 
+// FMAElem returns a*b + c element-wise with a single floating-point rounding per component.
+func FMAElem(a, b, c Vec) Vec {
+	return Vec{
+		X: math.FMA(a.X, b.X, c.X),
+		Y: math.FMA(a.Y, b.Y, c.Y),
+	}
+}
+
 // AbsElem returns the vector with components set to their absolute value.
 func AbsElem(a Vec) Vec {
 	return Vec{

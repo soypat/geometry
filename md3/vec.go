@@ -177,6 +177,15 @@ func MulElem(a, b Vec) Vec {
 	}
 }
 
+// FMAElem returns a*b + c element-wise with a single floating-point rounding per component.
+func FMAElem(a, b, c Vec) Vec {
+	return Vec{
+		X: math.FMA(a.X, b.X, c.X),
+		Y: math.FMA(a.Y, b.Y, c.Y),
+		Z: math.FMA(a.Z, b.Z, c.Z),
+	}
+}
+
 // DivElem returns the Hadamard product between vector a
 // and the inverse components of vector b.
 //
