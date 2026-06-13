@@ -86,6 +86,27 @@ func MulMat4(a, b Mat4) Mat4 {
 	return m
 }
 
+// ScaleMat4 scales all elements of m by f and returns the result.
+func ScaleMat4(f float64, m Mat4) Mat4 {
+	m.x00 *= f
+	m.x10 *= f
+	m.x20 *= f
+	m.x30 *= f
+	m.x01 *= f
+	m.x11 *= f
+	m.x21 *= f
+	m.x31 *= f
+	m.x02 *= f
+	m.x12 *= f
+	m.x22 *= f
+	m.x32 *= f
+	m.x03 *= f
+	m.x13 *= f
+	m.x23 *= f
+	m.x33 *= f
+	return m
+}
+
 // MulPosition multiplies a r3.Vec position with a rotate/translate matrix.
 func (a Mat4) MulPosition(b Vec) Vec {
 	return Vec{

@@ -260,3 +260,21 @@ func InterpElem(x, y, a Vec) Vec {
 func SmoothStepElem(e0, e1, x Vec) Vec {
 	return Vec{X: ms1.SmoothStep(e0.X, e1.X, x.X), Y: ms1.SmoothStep(e0.Y, e1.Y, x.Y), Z: ms1.SmoothStep(e0.Z, e1.Z, x.Z)}
 }
+
+// Collinear returns true if the three points a, b and c lie on a common line to
+// within the given tolerance. tol is interpreted as the maximum permissible
+// perpendicular distance from b to the line passing through a and c.
+func Collinear(a, b, c Vec, tol float32) bool {
+	ab := Sub(b, a)
+	ac := Sub(c, a)
+	len2AC := Norm2(ac)
+	if len2AC == 0 {
+		// Degenerate line (a and c coincide): collinear if b is within tol of a.
+		return Norm2(ab) <= tol*tol
+	}
+	// Perpendicular distance from b to line ac is |ab × ac| / |ac|. Both sides are
+	// non-negative so squaring preserves the inequality and avoids the square roots:
+	//
+	//	|ab × ac| / |ac| <= tol   <=>   |ab × ac|² <= tol²·|ac|²
+	return Norm2(Cross(ab, ac)) <= tol*tol*len2AC
+}

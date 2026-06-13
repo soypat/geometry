@@ -62,6 +62,7 @@ func run() error {
 				"\"github.com/soypat/geometry/ms1\"", "ms1 \"github.com/soypat/geometry/md1\"",
 				"\"github.com/soypat/geometry/ms2\"", "ms2 \"github.com/soypat/geometry/md2\"",
 				"\"github.com/soypat/geometry/ms3\"", "ms3 \"github.com/soypat/geometry/md3\"",
+				"32-bit", "64-bit",
 			)
 			dst.WriteString(`// DO NOT EDIT.
 // This file was generated automatically

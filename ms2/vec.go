@@ -249,8 +249,16 @@ func CopyOrientation(f float32, p1, p2, p3 Vec) float32 {
 }
 
 // Collinear returns true if 3 points lie on a single line to within tol.
+// tol is interpreted as the sine of the maximum permissible angle subtended
+// at c by the points a and b.
 func Collinear(a, b, c Vec, tol float32) bool {
-	pa := Unit(Sub(a, c))
-	pb := Unit(Sub(b, c))
-	return math.Abs(Cross(pa, pb)) < tol
+	// Equivalent to |sin(θ)| < tol with θ the angle at c, but avoids the two
+	// square roots and divisions of normalizing pa and pb. Since both sides are
+	// non-negative the inequality is preserved when squared:
+	//
+	//	|Cross(pa,pb)| / (|pa|·|pb|) < tol   <=>   Cross(pa,pb)² < tol²·|pa|²·|pb|²
+	pa := Sub(a, c)
+	pb := Sub(b, c)
+	cross := Cross(pa, pb)
+	return cross*cross < tol*tol*Norm2(pa)*Norm2(pb)
 }

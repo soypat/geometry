@@ -1,0 +1,89 @@
+package ms2
+
+import (
+	"testing"
+
+	math "github.com/chewxy/math32"
+)
+
+func TestCollinear(t *testing.T) {
+	const tol = 1e-3
+	lines := []Line{
+		{{0, 0}, {1, 0}},        // horizontal
+		{{0, 0}, {0, 1}},        // vertical
+		{{-1, -1}, {2, 2}},      // diagonal through origin
+		{{3, -2}, {-5, 7}},      // arbitrary
+		{{100, 100}, {103, 99}}, // offset from origin
+	}
+	for _, ln := range lines {
+		dir := Sub(ln[1], ln[0])
+		// Unit normal to the line, used to push points off of it by a known distance.
+		normal := Unit(Vec{-dir.Y, dir.X})
+		length := Norm(dir)
+
+		// Points sampled along the line (including outside [0,1]) must be collinear.
+		for _, ts := range [][3]float32{
+			{0, 0.5, 1},
+			{0.1, 0.5, 0.9},
+			{-0.5, 0.25, 2.0},
+			{0, 0, 1}, // repeated point a==b
+		} {
+			a := ln.Interpolate(ts[0])
+			b := ln.Interpolate(ts[1])
+			c := ln.Interpolate(ts[2])
+			if !Collinear(a, b, c, tol) {
+				t.Errorf("expected collinear for line %v at t=%v", ln, ts)
+			}
+		}
+
+		// Pushing b off the line by more than the tolerance allows must break collinearity.
+		// tol is sin(theta); for a midpoint the perpendicular offset d gives
+		// sin(theta) ~= d / (length/2), so an offset well above tol*length/2 is clearly off-line.
+		a := ln[0]
+		c := ln[1]
+		offset := 10 * tol * length
+		bOff := Add(ln.Interpolate(0.5), Scale(offset, normal))
+		if Collinear(a, bOff, c, tol) {
+			t.Errorf("expected non-collinear for line %v with offset %g", ln, offset)
+		}
+
+		// A point only slightly off the line (well within tol) stays collinear.
+		bNear := Add(ln.Interpolate(0.5), Scale(0.01*tol*length, normal))
+		if !Collinear(a, bNear, c, tol) {
+			t.Errorf("expected collinear for line %v with tiny offset", ln)
+		}
+	}
+}
+
+func TestCollinearDegenerate(t *testing.T) {
+	const tol = 1e-3
+	// All three points identical: zero-length vectors, RHS is 0, must report false
+	// (matches the previous Unit-based behavior where Unit(0) yielded NaN).
+	if Collinear(Vec{1, 1}, Vec{1, 1}, Vec{1, 1}, tol) {
+		t.Error("coincident points should not be reported collinear")
+	}
+	// a == c (degenerate reference line) with b elsewhere: not collinear.
+	if Collinear(Vec{2, 2}, Vec{5, 9}, Vec{2, 2}, tol) {
+		t.Error("a==c with distinct b should not be collinear")
+	}
+}
+
+// TestCollinearMatchesAngle verifies the squared formulation agrees with the
+// direct sin(theta) computation it replaced.
+func TestCollinearMatchesAngle(t *testing.T) {
+	c := Vec{1, 2}
+	pa := Vec{3, 0} // a-c direction
+	for _, deg := range []float32{0, 0.001, 0.05, 0.06, 1, 30, 90} {
+		rad := deg * math.Pi / 180
+		// Rotate pa by rad to form pb direction.
+		cos, sin := math.Cos(rad), math.Sin(rad)
+		pb := Vec{pa.X*cos - pa.Y*sin, pa.X*sin + pa.Y*cos}
+		a := Add(c, pa)
+		b := Add(c, Scale(2.5, pb)) // different magnitude to exercise normalization-independence
+		tol := float32(math.Sin(0.0573 * math.Pi / 180))
+		want := math.Abs(sin) < tol
+		if got := Collinear(a, b, c, tol); got != want {
+			t.Errorf("deg=%g: got %v want %v (sin=%g tol=%g)", deg, got, want, math.Abs(sin), tol)
+		}
+	}
+}

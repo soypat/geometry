@@ -133,3 +133,78 @@ func (rng *rngGen) FloatRange(start, end float32) float32 {
 func (rng *rngGen) VecRange(start, end float32) Vec {
 	return Vec{X: rng.FloatRange(start, end), Y: rng.FloatRange(start, end), Z: rng.FloatRange(start, end)}
 }
+
+// perpUnit returns a unit vector perpendicular to dir.
+func perpUnit(dir Vec) Vec {
+	// Cross with whichever axis is least aligned with dir to stay well-conditioned.
+	ad := AbsElem(dir)
+	var axis Vec
+	switch {
+	case ad.X <= ad.Y && ad.X <= ad.Z:
+		axis = Vec{X: 1}
+	case ad.Y <= ad.Z:
+		axis = Vec{Y: 1}
+	default:
+		axis = Vec{Z: 1}
+	}
+	return Unit(Cross(dir, axis))
+}
+
+func TestCollinear(t *testing.T) {
+	const tol = 1e-3
+	lines := []Line{
+		{{X: 0}, {X: 1}}, // along X
+		{{Y: 0}, {Y: 1}}, // along Y
+		{{Z: 0}, {Z: 1}}, // along Z
+		{{X: -1, Y: -1, Z: -1}, {X: 2, Y: 2, Z: 2}},        // body diagonal through origin
+		{{X: 3, Y: -2, Z: 5}, {X: -5, Y: 7, Z: 1}},         // arbitrary
+		{{X: 100, Y: 100, Z: 100}, {X: 103, Y: 99, Z: 98}}, // offset from origin
+	}
+	for _, ln := range lines {
+		dir := Sub(ln[1], ln[0])
+		normal := perpUnit(dir) // unit vector, so offsetting by d puts a point exactly distance d off the line
+
+		// Points sampled along the line (including outside [0,1]) must be collinear.
+		for _, ts := range [][3]float32{
+			{0, 0.5, 1},
+			{0.1, 0.5, 0.9},
+			{-0.5, 0.25, 2.0},
+			{0, 0, 1}, // repeated point a==b
+		} {
+			a := ln.Interpolate(ts[0])
+			b := ln.Interpolate(ts[1])
+			c := ln.Interpolate(ts[2])
+			if !Collinear(a, b, c, tol) {
+				t.Errorf("expected collinear for line %v at t=%v", ln, ts)
+			}
+		}
+
+		// ms3 tol is the perpendicular distance from b to line ac. Offsetting the
+		// midpoint along the unit normal by d makes b exactly distance d off the line.
+		a := ln[0]
+		c := ln[1]
+		mid := ln.Interpolate(0.5)
+		if Collinear(a, Add(mid, Scale(10*tol, normal)), c, tol) {
+			t.Errorf("expected non-collinear for line %v at distance %g > tol", ln, 10*tol)
+		}
+		if !Collinear(a, Add(mid, Scale(0.1*tol, normal)), c, tol) {
+			t.Errorf("expected collinear for line %v at distance %g < tol", ln, 0.1*tol)
+		}
+	}
+}
+
+func TestCollinearDegenerate(t *testing.T) {
+	const tol = 1e-3
+	// All three points coincide: within tol of each other, so collinear.
+	if !Collinear(Vec{X: 1, Y: 1}, Vec{X: 1, Y: 1}, Vec{X: 1, Y: 1}, tol) {
+		t.Error("coincident points should be collinear")
+	}
+	// a == c (degenerate reference line) with b far away: not collinear.
+	if Collinear(Vec{X: 2}, Vec{X: 5, Y: 9, Z: 1}, Vec{X: 2}, tol) {
+		t.Error("a==c with distant b should not be collinear")
+	}
+	// a == c with b within tol of a: collinear.
+	if !Collinear(Vec{X: 2}, Vec{X: 2, Y: tol / 2}, Vec{X: 2}, tol) {
+		t.Error("a==c with b within tol should be collinear")
+	}
+}
