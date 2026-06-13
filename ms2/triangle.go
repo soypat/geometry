@@ -74,26 +74,27 @@ func (t Triangle) IsDegenerate(tol float32) bool {
 	if len2[2] > longLen {
 		longIdx = 2
 	}
-	// calculate vertex distance from longest side
+	// calculate vertex distance from longest side. Compare squared distance against
+	// squared tol to avoid the square root; valid since both are non-negative.
 	ln := Line{t[longIdx], t[(longIdx+1)%3]}
-	dist := ln.DistanceInfinite(t[(longIdx+2)%3])
-	return dist <= tol
+	dist2 := ln.DistanceInfinite2(t[(longIdx+2)%3])
+	return dist2 <= tol*tol
 }
 
 // sort performs the sort-3 algorithm and returns
 // l1, l2, l3 such that l1 ≤ l2 ≤ l3.
-func sort(a, b, c float32) (l1, l2, l3 float32) {
+func sort(a, b, c float32) (short, mid, long float32) {
 	// sort-3
-	if l2 < l1 {
-		l1, l2 = l2, l1
+	if b < a {
+		a, b = b, a
 	}
-	if l3 < l2 {
-		l2, l3 = l3, l2
-		if l2 < l1 {
-			l1, l2 = l2, l1
+	if c < b {
+		b, c = c, b
+		if b < a {
+			a, b = b, a
 		}
 	}
-	return l1, l2, l3
+	return a, b, c
 }
 
 // orderedLengths returns the lengths of the sides of the triangle such that
@@ -133,6 +134,7 @@ func (t Triangle) Closest(p Vec) (closest Vec, side int8, vertex int8) {
 	if t.Contains(p) {
 		return p, -1, -1
 	}
+	side, vertex = -1, -1
 	minDist := internal.Largefloat32
 	for j := range t {
 		nxt := (j + 1) % 3
@@ -140,10 +142,12 @@ func (t Triangle) Closest(p Vec) (closest Vec, side int8, vertex int8) {
 		pointOnTriangle, maybeVertex := edge.Closest(p)
 		d2 := Norm2(Sub(p, pointOnTriangle))
 		if d2 < minDist {
-			if vertex < 0 {
-				vertex = -1
+			if maybeVertex < 0 {
+				// Closest to the segment interior: report this side.
 				side = int8(j)
+				vertex = -1
 			} else {
+				// Closest to one of the edge's endpoints: report the triangle vertex.
 				side = -1
 				vertex = (int8(j) + maybeVertex) % 3
 			}

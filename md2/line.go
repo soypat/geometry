@@ -31,6 +31,16 @@ func (ln Line) DistanceInfinite(point Vec) float64 {
 	return num / math.Hypot(p2.X-p1.X, p2.Y-p1.Y)
 }
 
+// DistanceInfinite2 returns the squared minimum euclidean distance of point p to the
+// infinite line represented by l. It avoids the square root of [Line.DistanceInfinite].
+func (ln Line) DistanceInfinite2(point Vec) float64 {
+	// distance = |num| / |p2-p1|, so distance² = num² / |p2-p1|².
+	p1 := ln[0]
+	p2 := ln[1]
+	num := (p2.X-p1.X)*(p1.Y-point.Y) - (p1.X-point.X)*(p2.Y-p1.Y)
+	return num * num / Norm2(Sub(p2, p1))
+}
+
 // ClosestInfinite returns the point on the infinite line closest to the argument point.
 func (ln Line) ClosestInfinite(point Vec) Vec {
 	// https://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
@@ -47,16 +57,17 @@ func (ln Line) Closest(point Vec) (closest Vec, vertexOrSegment int8) {
 	perpend2 := Add(ln[1], perpendicular)
 	e2 := Line{ln[1], perpend2}.edgeEquation(point)
 	if e2 > 0 {
-		return ln[1], 0
+		return ln[1], 1
 	}
 	perpend1 := Add(ln[0], perpendicular)
 	e1 := Line{ln[0], perpend1}.edgeEquation(point)
 	if e1 < 0 {
-		return ln[0], 1
+		return ln[0], 0
 	}
-	e3 := ln.DistanceInfinite(point)
-	toPoint := Scale(-e3, Unit(perpendicular))
-	return Sub(point, toPoint), -1
+	// Closest to the segment interior: project point onto the line. Since we are
+	// between the two perpendicular gates, the projection parameter lies in [0,1].
+	t := Dot(Sub(point, ln[0]), lineDir) / Norm2(lineDir)
+	return Add(ln[0], Scale(t, lineDir)), -1
 }
 
 // edgeEquation returns a signed distance of a point to
