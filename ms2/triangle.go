@@ -82,7 +82,7 @@ func (t Triangle) IsDegenerate(tol float32) bool {
 }
 
 // sort performs the sort-3 algorithm and returns
-// l1, l2, l3 such that l1 ≤ l2 ≤ l3.
+// l1, l2, l3 such that short ≤ mid ≤ long.
 func sort(a, b, c float32) (short, mid, long float32) {
 	// sort-3
 	if b < a {

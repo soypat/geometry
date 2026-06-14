@@ -46,51 +46,51 @@ func (s Spline3) Evaluate(t float64, v0, v1, v2, v3 Vec) (res Vec) {
 }
 
 // BasisFuncs returns the basis functions of the cubic spline corresponding to each of 4 control points.
-func (s Spline3) BasisFuncs() (bs [4]func(float64) float64) {
+func (s Spline3) BasisFunc() (bs func(float64) [4]float64) {
 	arr := s.m.Transpose().Array()
-	for i := range bs {
-		off := i * 4
-		bs[i] = func(t float64) (b float64) {
-			return arr[off+0] + t*arr[off+1] + t*t*arr[off+2] + t*t*t*arr[off+3]
+	return func(t float64) (b [4]float64) {
+		for i := range b {
+			off := i * 4
+			b[i] = arr[off+0] + t*arr[off+1] + t*t*arr[off+2] + t*t*t*arr[off+3]
 		}
+		return b
 	}
-	return bs
 }
 
 // BasisFuncs returns the differentiaed basis functions of the cubic spline.
-func (s Spline3) BasisFuncsDiff() (bs [4]func(float64) float64) {
+func (s Spline3) BasisFuncDiff() (bs func(float64) [4]float64) {
 	arr := s.m.Transpose().Array()
-	for i := range bs {
-		off := i * 4
-		bs[i] = func(t float64) (b float64) {
-			return arr[off+1] + 2*t*arr[off+2] + 3*t*t*arr[off+3]
+	return func(t float64) (b [4]float64) {
+		for i := range b {
+			off := i * 4
+			b[i] = arr[off+1] + 2*t*arr[off+2] + 3*t*t*arr[off+3]
 		}
+		return b
 	}
-	return bs
 }
 
 // BasisFuncsDiff2 returns the twice-differentiaed basis functions of the cubic spline.
-func (s Spline3) BasisFuncsDiff2() (bs [4]func(float64) float64) {
+func (s Spline3) BasisFuncDiff2() (bs func(float64) [4]float64) {
 	arr := s.m.Transpose().Array()
-	for i := range bs {
-		off := i * 4
-		bs[i] = func(t float64) (b float64) {
-			return 2*arr[off+2] + 6*t*arr[off+3]
+	return func(t float64) (b [4]float64) {
+		for i := range b {
+			off := i * 4
+			b[i] = 2*arr[off+2] + 6*t*arr[off+3]
 		}
+		return b
 	}
-	return bs
 }
 
 // BasisFuncsDiff3 returns the thrice-differentiaed basis functions of the cubic spline.
-func (s Spline3) BasisFuncsDiff3() (bs [4]func(float64) float64) {
+func (s Spline3) BasisFuncDiff3() (bs func(float64) [4]float64) {
 	arr := s.m.Transpose().Array()
-	for i := range bs {
-		off := i * 4
-		bs[i] = func(t float64) (b float64) {
-			return 6 * arr[off+3]
+	return func(t float64) (b [4]float64) {
+		for i := range b {
+			off := i * 4
+			b[i] = 6 * arr[off+3]
 		}
+		return b
 	}
-	return bs
 }
 
 // matrix form of bezier curves:

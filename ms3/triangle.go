@@ -80,24 +80,24 @@ func (t Triangle) Area() float32 {
 }
 
 // Sort performs the sort-3 algorithm and returns
-// l1, l2, l3 such that l1 ≤ l2 ≤ l3.
-func Sort(a, b, c float32) (l1, l2, l3 float32) {
+// l1, l2, l3 such that short ≤ mid ≤ long.
+func Sort(a, b, c float32) (short, mid, long float32) {
 	// sort-3
-	if l2 < l1 {
-		l1, l2 = l2, l1
+	if b < a {
+		a, b = b, a
 	}
-	if l3 < l2 {
-		l2, l3 = l3, l2
-		if l2 < l1 {
-			l1, l2 = l2, l1
+	if c < b {
+		b, c = c, b
+		if b < a {
+			a, b = b, a
 		}
 	}
-	return l1, l2, l3
+	return a, b, c
 }
 
 // orderedLengths returns the lengths of the sides of the triangle such that
 // a ≤ b ≤ c.
-func (t Triangle) orderedLengths() (a, b, c float32) {
+func (t Triangle) orderedLengths() (short, mid, long float32) {
 	s1, s2, s3 := t.edges()
 	l1 := Norm(s1)
 	l2 := Norm(s2)

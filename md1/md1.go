@@ -61,6 +61,30 @@ func SmoothStep(edge0, edge1, x float64) float64 {
 	return t * t * (3 - 2*t)
 }
 
+// Compare implements [cmp.Compare] like functionality with tolerance.
+// It returns 0 if x and y are within tol of eachother, -1 if x is less than y
+// and +1 if x is greater than y. Like cmp.Compare a NaN is considered less than
+// any non-NaN, and two NaNs are considered equal.
+func Compare(x, y, tol float64) int {
+	xNaN, yNaN := x != x, y != y
+	if xNaN || yNaN {
+		if xNaN && yNaN {
+			return 0
+		}
+		if xNaN {
+			return -1 // NaN sorts before any non-NaN.
+		}
+		return 1
+	}
+	if EqualWithinAbs(x, y, tol) {
+		return 0
+	}
+	if x < y {
+		return -1
+	}
+	return 1
+}
+
 // EqualWithinAbs checks if a and b are within tol of eachother.
 func EqualWithinAbs(a, b, tol float64) bool {
 	return math.Abs(a-b) <= tol

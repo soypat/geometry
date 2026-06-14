@@ -35,6 +35,16 @@ func (t Tetra) Edges() [6]Vec {
 	}
 }
 
+// Face returns the i-th face of the tetrahedron, which is the triangle
+// opposite vertex i, composed of vertices (i+1)%4, (i+2)%4 and (i+3)%4.
+// This matches the ordering used by [Tetra.heights].
+func (t Tetra) Face(i int) Triangle {
+	j := (i + 1) % 4
+	k := (i + 2) % 4
+	l := (i + 3) % 4
+	return Triangle{t[j], t[k], t[l]}
+}
+
 // Volume returns the volume contained in the tetrahedron.
 func (t Tetra) Volume() float64 {
 	const third = 1.0 / 3.0
