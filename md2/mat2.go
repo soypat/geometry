@@ -21,6 +21,9 @@ func NewMat2(v []float64) (m Mat2) {
 	return m
 }
 
+// Diagonal2 returns a diagonal 2x2 matrix with values a and b.
+func Diagonal2(a, b float64) Mat2 { return Mat2{x00: a, x11: b} }
+
 // IdentityMat2 returns the 2x2 identity matrix.
 func IdentityMat2() Mat2 {
 	return Mat2{

@@ -37,6 +37,11 @@ func IdentityMat4() Mat4 {
 		0, 0, 0, 1}
 }
 
+// Diagonal4 returns a diagonal 4x4 matrix with values a, b, c and d.
+func Diagonal4(a, b, c, d float64) Mat4 {
+	return Mat4{x00: a, x11: b, x22: c, x33: d}
+}
+
 func nanMat4() Mat4 {
 	return Mat4{
 		math.NaN(), math.NaN(), math.NaN(), math.NaN(),

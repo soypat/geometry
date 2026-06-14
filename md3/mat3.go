@@ -44,6 +44,11 @@ func IdentityMat3() Mat3 {
 		0, 0, 1)
 }
 
+// Diagonal3 returns a diagonal 3x3 matrix with values a, b and c.
+func Diagonal3(a, b, c float64) Mat3 {
+	return Mat3{x00: a, x11: b, x22: c}
+}
+
 // Skew returns the 3×3 skew symmetric matrix (right hand system) of v.
 //
 //	                ⎡ 0 -z  y⎤
