@@ -87,6 +87,14 @@ func (p *PolygonBuilder) AddRelativeXY(x, y float32) *PolygonControlPoint {
 	return p.AddRelative(Vec{X: x, Y: y})
 }
 
+// Last returns the last polygon control point set. If empty returns nil.
+func (p *PolygonBuilder) Last() *PolygonControlPoint {
+	if len(p.verts) > 0 {
+		return &p.verts[len(p.verts)-1]
+	}
+	return nil
+}
+
 // DropLast drops the last vertex. Can be called multiple times to drop several vertices.
 func (p *PolygonBuilder) DropLast() {
 	if len(p.verts) > 0 {
@@ -173,6 +181,9 @@ func (v *PolygonControlPoint) Arc(radius float32, facets int) {
 }
 func (v *PolygonControlPoint) isSmoothed() bool { return v.facets > 0 && v.radius > 0 }
 func (v *PolygonControlPoint) isArc() bool      { return v.facets < 0 && v.radius != 0 }
+
+// Position returns the raw control coordinates.
+func (v *PolygonControlPoint) Position() Vec { return v.v }
 
 const sqrtHalf = math.Sqrt2 / 2
 
